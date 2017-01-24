@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Eric Mellino</Authors>
+    <Company />
+    <Description>Contains the NativeLibrary type, useful for loading native shared libraries and retrieving function pointers.</Description>
+    <PackageProjectUrl>https://github.com/mellinoe/nativelibraryloader</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mellinoe/nativelibraryloader</RepositoryUrl>
+    <DocumentationFile>bin/NativeLibraryLoader.xml</DocumentationFile>
+  </PropertyGroup>
+</Project>
