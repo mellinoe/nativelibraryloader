@@ -107,7 +107,19 @@ namespace NativeLibraryLoader
 
             protected override IntPtr CoreLoadNativeLibrary(string name)
             {
-                return Kernel32.LoadLibrary(name);
+                IntPtr ret = Kernel32.LoadLibrary(name);
+                if (ret == IntPtr.Zero)
+                {
+                    string path = Path.Combine(AppContext.BaseDirectory, name);
+                    ret = Kernel32.LoadLibrary(path);
+                }
+
+                if (ret == IntPtr.Zero)
+                {
+                    throw new FileNotFoundException("Could not find or load the native library: " + name);
+                }
+
+                return ret;
             }
         }
 
