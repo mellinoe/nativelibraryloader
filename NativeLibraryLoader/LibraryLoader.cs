@@ -16,12 +16,41 @@ namespace NativeLibraryLoader
         /// <returns>The operating system handle for the shared library.</returns>
         public IntPtr LoadNativeLibrary(string name)
         {
+            return LoadNativeLibrary(name, PathResolver.Default);
+        }
+
+        /// <summary>
+        /// Loads a native library by name and returns an operating system handle to it.
+        /// </summary>
+        /// <param name="name">The name of the library to open.</param>
+        /// <param name="pathResolver">The path resolver to use.</param>
+        /// <returns>The operating system handle for the shared library.</returns>
+        public IntPtr LoadNativeLibrary(string name, PathResolver pathResolver)
+        {
             if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentException("Parameter must not be null or empty.", nameof(name));
             }
 
-            return CoreLoadNativeLibrary(name);
+            IntPtr ret = IntPtr.Zero;
+            foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
+            {
+                if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
+                {
+                    ret = CoreLoadNativeLibrary(loadTarget);
+                    if (ret != IntPtr.Zero)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (ret == IntPtr.Zero)
+            {
+                throw new FileNotFoundException("Could not find or load the native library: " + name);
+            }
+
+            return ret;
         }
 
         /// <summary>
@@ -58,7 +87,8 @@ namespace NativeLibraryLoader
         /// Loads a native library by name and returns an operating system handle to it.
         /// </summary>
         /// <param name="name">The name of the library to open. This parameter must not be null or empty.</param>
-        /// <returns>The operating system handle for the shared library.</returns>
+        /// <returns>The operating system handle for the shared library.
+        /// If the library cannot be loaded, IntPtr.Zero should be returned.</returns>
         protected abstract IntPtr CoreLoadNativeLibrary(string name);
 
         /// <summary>
@@ -107,19 +137,7 @@ namespace NativeLibraryLoader
 
             protected override IntPtr CoreLoadNativeLibrary(string name)
             {
-                IntPtr ret = Kernel32.LoadLibrary(name);
-                if (ret == IntPtr.Zero)
-                {
-                    string path = Path.Combine(AppContext.BaseDirectory, name);
-                    ret = Kernel32.LoadLibrary(path);
-                }
-
-                if (ret == IntPtr.Zero)
-                {
-                    throw new FileNotFoundException("Could not find or load the native library: " + name);
-                }
-
-                return ret;
+                return Kernel32.LoadLibrary(name);
             }
         }
 
@@ -137,15 +155,7 @@ namespace NativeLibraryLoader
 
             protected override IntPtr CoreLoadNativeLibrary(string name)
             {
-                Libdl.dlerror();
-                IntPtr handle = Libdl.dlopen(name, Libdl.RTLD_NOW);
-                if (handle == IntPtr.Zero && !Path.IsPathRooted(name))
-                {
-                    string localPath = Path.Combine(AppContext.BaseDirectory, name);
-                    handle = Libdl.dlopen(localPath, Libdl.RTLD_NOW);
-                }
-
-                return handle;
+                return Libdl.dlopen(name, Libdl.RTLD_NOW);
             }
         }
     }

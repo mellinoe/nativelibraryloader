@@ -21,7 +21,7 @@ namespace NativeLibraryLoader
         /// Constructs a new NativeLibrary using the platform's default library loader.
         /// </summary>
         /// <param name="name">The name of the library to load.</param>
-        public NativeLibrary(string name) : this(name, s_platformDefaultLoader)
+        public NativeLibrary(string name) : this(name, s_platformDefaultLoader, PathResolver.Default)
         {
         }
 
@@ -30,10 +30,20 @@ namespace NativeLibraryLoader
         /// </summary>
         /// <param name="name">The name of the library to load.</param>
         /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
-        public NativeLibrary(string name, LibraryLoader loader)
+        public NativeLibrary(string name, LibraryLoader loader) : this(name, loader, PathResolver.Default)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new NativeLibrary using the specified library loader.
+        /// </summary>
+        /// <param name="name">The name of the library to load.</param>
+        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
+        /// <param name="pathResolver">The path resolver, used to identify possible load targets for the library.</param>
+        public NativeLibrary(string name, LibraryLoader loader, PathResolver pathResolver)
         {
             _loader = loader;
-            Handle = _loader.LoadNativeLibrary(name);
+            Handle = _loader.LoadNativeLibrary(name, pathResolver);
         }
 
         /// <summary>
