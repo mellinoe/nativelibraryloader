@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageVersion>1.0.1</PackageVersion>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <TargetFramework>netstandard1.6</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Eric Mellino</Authors>
