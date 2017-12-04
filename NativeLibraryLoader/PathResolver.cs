@@ -51,7 +51,7 @@ namespace NativeLibraryLoader
         private bool TryLocateNativeAssetFromDeps(string name, out string depsResolvedPath)
         {
             DependencyContext defaultContext = DependencyContext.Default;
-            string runtimeIdentifier = RuntimeEnvironment.GetRuntimeIdentifier();
+            string runtimeIdentifier = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment.GetRuntimeIdentifier();
             foreach (var runtimeLib in defaultContext.RuntimeLibraries)
             {
                 foreach (var nativeAsset in runtimeLib.GetRuntimeNativeAssets(defaultContext, runtimeIdentifier))
