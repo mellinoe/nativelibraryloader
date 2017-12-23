@@ -43,18 +43,7 @@ namespace NativeLibraryLoader
                 throw new ArgumentException("Parameter must not be null or empty.", nameof(name));
             }
 
-            IntPtr ret = IntPtr.Zero;
-            foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
-            {
-                if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
-                {
-                    ret = CoreLoadNativeLibrary(loadTarget);
-                    if (ret != IntPtr.Zero)
-                    {
-                        break;
-                    }
-                }
-            }
+            IntPtr ret = LoadWithResolver(name, pathResolver);
 
             if (ret == IntPtr.Zero)
             {
@@ -81,16 +70,10 @@ namespace NativeLibraryLoader
             IntPtr ret = IntPtr.Zero;
             foreach (string name in names)
             {
-                foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
+                ret = LoadWithResolver(name, pathResolver);
+                if (ret != IntPtr.Zero)
                 {
-                    if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
-                    {
-                        ret = CoreLoadNativeLibrary(loadTarget);
-                        if (ret != IntPtr.Zero)
-                        {
-                            break;
-                        }
-                    }
+                    break;
                 }
             }
 
@@ -100,6 +83,23 @@ namespace NativeLibraryLoader
             }
 
             return ret;
+        }
+
+        private IntPtr LoadWithResolver(string name, PathResolver pathResolver)
+        {
+            foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
+            {
+                if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
+                {
+                    IntPtr ret = CoreLoadNativeLibrary(loadTarget);
+                    if (ret != IntPtr.Zero)
+                    {
+                        return ret;
+                    }
+                }
+            }
+
+            return IntPtr.Zero;
         }
 
         /// <summary>
