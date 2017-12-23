@@ -22,6 +22,17 @@ namespace NativeLibraryLoader
         /// <summary>
         /// Loads a native library by name and returns an operating system handle to it.
         /// </summary>
+        /// <param name="names">An ordered list of names. Each name is tried in turn, until the library is successfully loaded.
+        /// </param>
+        /// <returns>The operating system handle for the shared library.</returns>
+        public IntPtr LoadNativeLibrary(string[] names)
+        {
+            return LoadNativeLibrary(names, PathResolver.Default);
+        }
+
+        /// <summary>
+        /// Loads a native library by name and returns an operating system handle to it.
+        /// </summary>
         /// <param name="name">The name of the library to open.</param>
         /// <param name="pathResolver">The path resolver to use.</param>
         /// <returns>The operating system handle for the shared library.</returns>
@@ -48,6 +59,44 @@ namespace NativeLibraryLoader
             if (ret == IntPtr.Zero)
             {
                 throw new FileNotFoundException("Could not find or load the native library: " + name);
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Loads a native library by name and returns an operating system handle to it.
+        /// </summary>
+        /// <param name="names">An ordered list of names. Each name is tried in turn, until the library is successfully loaded.
+        /// </param>
+        /// <param name="pathResolver">The path resolver to use.</param>
+        /// <returns>The operating system handle for the shared library.</returns>
+        public IntPtr LoadNativeLibrary(string[] names, PathResolver pathResolver)
+        {
+            if (names == null || names.Length == 0)
+            {
+                throw new ArgumentException("Parameter must not be null or empty.", nameof(names));
+            }
+
+            IntPtr ret = IntPtr.Zero;
+            foreach (string name in names)
+            {
+                foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
+                {
+                    if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
+                    {
+                        ret = CoreLoadNativeLibrary(loadTarget);
+                        if (ret != IntPtr.Zero)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (ret == IntPtr.Zero)
+            {
+                throw new FileNotFoundException($"Could not find or load the native library from any name: [ {string.Join(", ", names)} ]");
             }
 
             return ret;

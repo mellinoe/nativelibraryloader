@@ -26,11 +26,28 @@ namespace NativeLibraryLoader
         }
 
         /// <summary>
+        /// Constructs a new NativeLibrary using the platform's default library loader.
+        /// </summary>
+        /// <param name="names">An ordered list of names to attempt to load.</param>
+        public NativeLibrary(string[] names) : this(names, s_platformDefaultLoader, PathResolver.Default)
+        {
+        }
+
+        /// <summary>
         /// Constructs a new NativeLibrary using the specified library loader.
         /// </summary>
         /// <param name="name">The name of the library to load.</param>
         /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
         public NativeLibrary(string name, LibraryLoader loader) : this(name, loader, PathResolver.Default)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new NativeLibrary using the specified library loader.
+        /// </summary>
+        /// <param name="names">An ordered list of names to attempt to load.</param>
+        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
+        public NativeLibrary(string[] names, LibraryLoader loader) : this(names, loader, PathResolver.Default)
         {
         }
 
@@ -44,6 +61,18 @@ namespace NativeLibraryLoader
         {
             _loader = loader;
             Handle = _loader.LoadNativeLibrary(name, pathResolver);
+        }
+
+        /// <summary>
+        /// Constructs a new NativeLibrary using the specified library loader.
+        /// </summary>
+        /// <param name="names">An ordered list of names to attempt to load.</param>
+        /// <param name="loader">The loader used to open and close the library, and to load function pointers.</param>
+        /// <param name="pathResolver">The path resolver, used to identify possible load targets for the library.</param>
+        public NativeLibrary(string[] names, LibraryLoader loader, PathResolver pathResolver)
+        {
+            _loader = loader;
+            Handle = _loader.LoadNativeLibrary(names, pathResolver);
         }
 
         /// <summary>
