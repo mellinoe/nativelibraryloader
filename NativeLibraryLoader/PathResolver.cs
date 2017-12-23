@@ -13,7 +13,7 @@ namespace NativeLibraryLoader
     public abstract class PathResolver
     {
         /// <summary>
-        /// Returns an enumerator which yieilds possible library load targets, in priority order.
+        /// Returns an enumerator which yields possible library load targets, in priority order.
         /// </summary>
         /// <param name="name">The name of the library to load.</param>
         /// <returns>An enumerator yielding load targets.</returns>
@@ -51,6 +51,12 @@ namespace NativeLibraryLoader
         private bool TryLocateNativeAssetFromDeps(string name, out string depsResolvedPath)
         {
             DependencyContext defaultContext = DependencyContext.Default;
+            if (defaultContext == null)
+            {
+                depsResolvedPath = null;
+                return false;
+            }
+
             string runtimeIdentifier = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment.GetRuntimeIdentifier();
             foreach (var runtimeLib in defaultContext.RuntimeLibraries)
             {
