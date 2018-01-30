@@ -57,25 +57,68 @@ namespace NativeLibraryLoader
                 return false;
             }
 
-            string runtimeIdentifier = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment.GetRuntimeIdentifier();
-            foreach (var runtimeLib in defaultContext.RuntimeLibraries)
+            string currentRID = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment.GetRuntimeIdentifier();
+            List<string> allRIDs = new List<string>();
+            allRIDs.Add(currentRID);
+            if (!AddFallbacks(allRIDs, currentRID, defaultContext.RuntimeGraph))
             {
-                foreach (var nativeAsset in runtimeLib.GetRuntimeNativeAssets(defaultContext, runtimeIdentifier))
+                string guessedFallbackRID = GuessFallbackRID(currentRID);
+                if (guessedFallbackRID != null)
                 {
-                    if (Path.GetFileName(nativeAsset) == name || Path.GetFileNameWithoutExtension(nativeAsset) == name)
+                    allRIDs.Add(guessedFallbackRID);
+                    AddFallbacks(allRIDs, guessedFallbackRID, defaultContext.RuntimeGraph);
+                }
+            }
+
+            foreach (string rid in allRIDs)
+            {
+                foreach (var runtimeLib in defaultContext.RuntimeLibraries)
+                {
+                    foreach (var nativeAsset in runtimeLib.GetRuntimeNativeAssets(defaultContext, rid))
                     {
-                        string fullPath = Path.Combine(
-                            GetNugetPackagesRootDirectory(),
-                            runtimeLib.Name.ToLowerInvariant(),
-                            runtimeLib.Version, nativeAsset);
-                        fullPath = Path.GetFullPath(fullPath);
-                        depsResolvedPath = fullPath;
-                        return true;
+                        if (Path.GetFileName(nativeAsset) == name || Path.GetFileNameWithoutExtension(nativeAsset) == name)
+                        {
+                            string fullPath = Path.Combine(
+                                GetNugetPackagesRootDirectory(),
+                                runtimeLib.Name.ToLowerInvariant(),
+                                runtimeLib.Version, nativeAsset);
+                            fullPath = Path.GetFullPath(fullPath);
+                            depsResolvedPath = fullPath;
+                            return true;
+                        }
                     }
                 }
             }
 
             depsResolvedPath = null;
+            return false;
+        }
+
+        private string GuessFallbackRID(string actualRuntimeIdentifier)
+        {
+            if (actualRuntimeIdentifier == "osx.10.13-x64")
+            {
+                return "osx.10.12-x64";
+            }
+            else if (actualRuntimeIdentifier.StartsWith("osx"))
+            {
+                return "osx-x64";
+            }
+
+            return null;
+        }
+
+        private bool AddFallbacks(List<string> fallbacks, string rid, IReadOnlyList<RuntimeFallbacks> allFallbacks)
+        {
+            foreach (RuntimeFallbacks fb in allFallbacks)
+            {
+                if (fb.Runtime == rid)
+                {
+                    fallbacks.AddRange(fb.Fallbacks);
+                    return true;
+                }
+            }
+
             return false;
         }
 
