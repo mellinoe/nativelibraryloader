@@ -95,6 +95,16 @@ namespace NativeLibraryLoader
         }
 
         /// <summary>
+        /// Loads a function pointer with the given name.
+        /// </summary>
+        /// <param name="name">The name of the native export.</param>
+        /// <returns>A function pointer for the given name, or 0 if no function with that name exists.</returns>
+        public IntPtr LoadFunction(string name)
+        {
+            return _loader.LoadFunctionPointer(Handle, name);
+        }
+
+        /// <summary>
         /// Frees the native library. Function pointers retrieved from this library will be void.
         /// </summary>
         public void Dispose()
