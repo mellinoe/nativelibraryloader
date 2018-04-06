@@ -87,19 +87,26 @@ namespace NativeLibraryLoader
 
         private IntPtr LoadWithResolver(string name, PathResolver pathResolver)
         {
-            foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
+            if (Path.IsPathRooted(name))
             {
-                if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
+                return CoreLoadNativeLibrary(name);
+            }
+            else
+            {
+                foreach (string loadTarget in pathResolver.EnumeratePossibleLibraryLoadTargets(name))
                 {
-                    IntPtr ret = CoreLoadNativeLibrary(loadTarget);
-                    if (ret != IntPtr.Zero)
+                    if (!Path.IsPathRooted(loadTarget) || File.Exists(loadTarget))
                     {
-                        return ret;
+                        IntPtr ret = CoreLoadNativeLibrary(loadTarget);
+                        if (ret != IntPtr.Zero)
+                        {
+                            return ret;
+                        }
                     }
                 }
-            }
 
-            return IntPtr.Zero;
+                return IntPtr.Zero;
+            }
         }
 
         /// <summary>
