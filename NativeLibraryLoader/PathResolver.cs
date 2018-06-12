@@ -34,7 +34,7 @@ namespace NativeLibraryLoader
     public class DefaultPathResolver : PathResolver
     {
         /// <summary>
-        /// Returns an enumerator which yieilds possible library load targets, in priority order.
+        /// Returns an enumerator which yields possible library load targets, in priority order.
         /// </summary>
         /// <param name="name">The name of the library to load.</param>
         /// <returns>An enumerator yielding load targets.</returns>
@@ -42,17 +42,19 @@ namespace NativeLibraryLoader
         {
             yield return Path.Combine(AppContext.BaseDirectory, name);
             yield return name;
-            if (TryLocateNativeAssetFromDeps(name, out string depsResolvedPath))
+            if (TryLocateNativeAssetFromDeps(name, out string appLocalNativePath, out string depsResolvedPath))
             {
+                yield return appLocalNativePath;
                 yield return depsResolvedPath;
             }
         }
 
-        private bool TryLocateNativeAssetFromDeps(string name, out string depsResolvedPath)
+        private bool TryLocateNativeAssetFromDeps(string name, out string appLocalNativePath, out string depsResolvedPath)
         {
             DependencyContext defaultContext = DependencyContext.Default;
             if (defaultContext == null)
             {
+                appLocalNativePath = null;
                 depsResolvedPath = null;
                 return false;
             }
@@ -78,18 +80,25 @@ namespace NativeLibraryLoader
                     {
                         if (Path.GetFileName(nativeAsset) == name || Path.GetFileNameWithoutExtension(nativeAsset) == name)
                         {
-                            string fullPath = Path.Combine(
+                            appLocalNativePath = Path.Combine(
+                                AppContext.BaseDirectory,
+                                nativeAsset);
+                            appLocalNativePath = Path.GetFullPath(appLocalNativePath);
+
+                            depsResolvedPath = Path.Combine(
                                 GetNugetPackagesRootDirectory(),
                                 runtimeLib.Name.ToLowerInvariant(),
-                                runtimeLib.Version, nativeAsset);
-                            fullPath = Path.GetFullPath(fullPath);
-                            depsResolvedPath = fullPath;
+                                runtimeLib.Version,
+                                nativeAsset);
+                            depsResolvedPath = Path.GetFullPath(depsResolvedPath);
+
                             return true;
                         }
                     }
                 }
             }
 
+            appLocalNativePath = null;
             depsResolvedPath = null;
             return false;
         }
