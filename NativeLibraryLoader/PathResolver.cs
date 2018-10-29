@@ -40,7 +40,10 @@ namespace NativeLibraryLoader
         /// <returns>An enumerator yielding load targets.</returns>
         public override IEnumerable<string> EnumeratePossibleLibraryLoadTargets(string name)
         {
-            yield return Path.Combine(AppContext.BaseDirectory, name);
+            if (!string.IsNullOrEmpty(AppContext.BaseDirectory))
+            {
+                yield return Path.Combine(AppContext.BaseDirectory, name);
+            }
             yield return name;
             if (TryLocateNativeAssetFromDeps(name, out string appLocalNativePath, out string depsResolvedPath))
             {
