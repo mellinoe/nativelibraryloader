@@ -193,6 +193,11 @@ namespace NativeLibraryLoader
 
             protected override IntPtr CoreLoadNativeLibrary(string name)
             {
+                var libraryPath = Path.GetDirectoryName(name);
+                if (!string.IsNullOrEmpty(libraryPath))
+                {
+                    Kernel32.SetDllDirectory(libraryPath);
+                }
                 return Kernel32.LoadLibrary(name);
             }
         }
