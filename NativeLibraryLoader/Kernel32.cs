@@ -7,6 +7,8 @@ namespace NativeLibraryLoader
     {
         [DllImport("kernel32")]
         public static extern IntPtr LoadLibrary(string fileName);
+        [DllImport("kernel32")]
+        public static extern bool SetDllDirectory(string fileName);
 
         [DllImport("kernel32")]
         public static extern IntPtr GetProcAddress(IntPtr module, string procName);
