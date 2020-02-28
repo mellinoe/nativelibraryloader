@@ -171,9 +171,13 @@ namespace NativeLibraryLoader
             {
                 return new Win32LibraryLoader();
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return new UnixLibraryLoader();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return new OSXLibraryLoader();
             }
 
             throw new PlatformNotSupportedException("This platform cannot load native libraries.");
@@ -212,6 +216,24 @@ namespace NativeLibraryLoader
             protected override IntPtr CoreLoadNativeLibrary(string name)
             {
                 return Libdl.dlopen(name, Libdl.RTLD_NOW);
+            }
+        }
+
+        private class OSXLibraryLoader : LibraryLoader
+        {
+            protected override void CoreFreeNativeLibrary(IntPtr handle)
+            {
+                LibSystem.dlclose(handle);
+            }
+
+            protected override IntPtr CoreLoadFunctionPointer(IntPtr handle, string functionName)
+            {
+                return LibSystem.dlsym(handle, functionName);
+            }
+
+            protected override IntPtr CoreLoadNativeLibrary(string name)
+            {
+                return LibSystem.dlopen(name, LibSystem.RTLD_NOW);
             }
         }
     }
